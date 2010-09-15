@@ -1,0 +1,10 @@
+--- a/d_rats/wl2k.py
++++ b/d_rats/wl2k.py
+@@ -34,6 +34,7 @@
+     return string.replace("\n", r"\n").replace("\r", r"\r")
+ 
+ def run_lzhuf(cmd, data):
++    raise Exception("Not supported due to lack of license for lzhuf")
+     p = platform.get_platform()
+ 
+     cwd = tempfile.mkdtemp()

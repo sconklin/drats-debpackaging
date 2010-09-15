@@ -1,0 +1,13 @@
+d-rats (0.3.3~b4-2) unstable; urgency=low
+
+  * New upstream beta version released (Closes: 589107)
+    The new beta arrived before the initial debian release,
+    so this release should close the initial packaging bug
+
+ -- Steve Conklin <steve@conklinhouse.com>  Mon, 13 Sep 2010 18:59:10 -0500
+
+d-rats (0.3.3~b3-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Steve Conklin <steve@conklinhouse.com>  Mon, 30 Aug 2010 10:20:59 -0500

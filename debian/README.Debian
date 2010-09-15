@@ -1,0 +1,14 @@
+d-rats for Debian
+
+This is packaged from a beta release of upstream d-rats. It is the first
+packaging of this for Debian. The most recent released version is not
+suitable for packaging, and a number of changes have been made upstream
+specifically to enable debian packaging, yet another official upstream release
+will not be made for many months, so the beta release is being packaged.
+
+There is a file delivered in the upstream release which does not meet
+Debian Free Software Guidelines (DFSG). This file is an x86 executable
+/libexec/lzhuf in the tarball. The file has source available but only
+builds on x86 and the license is not defined.
+
+

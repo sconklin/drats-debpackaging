@@ -1,0 +1,10 @@
+--- a/setup.py
++++ b/setup.py
+@@ -93,7 +93,6 @@
+                     ('/usr/share/d-rats/forms', form_files),
+                     ('/usr/share/d-rats/images', image_files),
+                     ('/usr/share/d-rats/ui', ui_files),
+-                    ('/usr/share/d-rats/libexec', ["libexec/lzhuf"]),
+                     ('/usr/share/man/man1', ['share/d-rats.1']),
+                     ('/usr/share/doc/d-rats', ['COPYING']),
+                     ] + locale_files)

@@ -1,0 +1,55 @@
+This work was packaged for Debian by:
+
+    Steve Conklin AI4QR <steve@conklinhouse.com> on Wed, 14 Jul 2010 16:26:40 -0500
+
+It was downloaded from:
+
+    http://www.d-rats.com/
+
+Upstream Author(s):
+
+    Dan Smith <kk7ds@danplanet.com>
+
+Copyright:
+
+    Copyright (C) 2008, 2009, 2010 Dan Smith
+
+License:
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This package is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+On Debian systems, the complete text of the GNU General
+Public License version 3 can be found in `/usr/share/common-licenses/GPL-3'.
+
+The Debian packaging is:
+
+    Copyright (C) 2010 Steve Conklin <steve@conklinhouse.com>
+    and is licensed under the GPL version 3, see above.
+
+Note: 
+
+    The upstream author (Dan Smith) inadvertently ommitted the COPYING file
+    from the source tarball in all releases up to and including this one.
+
+    The COPYING file has always been included in his source repository,
+    which can be verified by examining the repository here:
+    http://www.d-rats.com/hg/
+
+    This has been corrected going forward, and it can be seen that the file
+    is included in the tarball for the next beta version here:
+    http://www.d-rats.com/download/beta/
+
+    In order to package the current version of d-rats, the COPYING file has
+    been added to the upstream source with a patch, and has the exact same
+    content as upstream. This has been discussed with the upstream author.
