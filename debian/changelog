@@ -1,4 +1,4 @@
-d-rats (0.3.3~b4-2) unstable; urgency=low
+d-rats (0.3.3~b4-3) unstable; urgency=low
 
   * New upstream beta version released (Closes: 589107)
     The new beta arrived before the initial debian release,
