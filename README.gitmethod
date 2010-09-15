@@ -1,0 +1,72 @@
+(12:10:07 PM) sconklin: It is distributed in tarball with a non-free (or questionable) executable. I strip that and provide a rules target to get the original tarball.
+(12:10:57 PM) sconklin: I also patch the code so that when winlink users (both of them who use linux) try to use that functionality, it just raises an exception that says "This feature disabled due to non-free requirements"
+(12:11:44 PM) bdale: I'm not sure why you bother providing that rules target?
+(12:12:58 PM) sconklin: because the packaging guidelines said to
+(12:13:12 PM) sconklin: and because buildpackage complains if there's not a tarbell
+(12:13:19 PM) sconklin: Unless there's another way.
+(12:14:09 PM) bdale: huh?  what packaging guideline encourages you to provide a target to pull in content that isn't free?  I must be mis-understanding.
+(12:14:47 PM) sconklin: I saw that in some cases, there was a recommendation to append "dfsg" to the package name to signify that there was a change from upstream, I didn't do that
+(12:15:09 PM) bdale: oh, ok, this is all about the right way to get to a 'clean' orig.tar.gz?
+(12:15:17 PM) sconklin: yes
+(12:15:59 PM) sconklin: although I may have gotten it wrong. Now I'm second guessing my methods
+(12:16:05 PM) bdale: well, there are a couple things that matter.  one is that the orig.tar.gz that you upload to Debian is DFSG compliant if it's targeted at main.  
+(12:16:32 PM) sconklin: right, understand that completely
+(12:16:44 PM) bdale: the second, in my opinion, is that you have some documented and repeatable process for getting from "pristine" upstream to that orig.tar.gz so that you can handle new upstream versions easily
+(12:17:42 PM) sconklin: actually, I did not get that correct, the orig tarball still has the executable in it. Let me respin that and get back to you.
+(12:17:42 PM) bdale: I do all of my packaging in git, so I think about this in terms of git branch management.  Before I used git for packaging, I did a lot of this "manually".  So let me explain how I'd handle an upstream with non-free content in git and see if that makes sense to you?
+(12:17:57 PM) sconklin: yes, please.
+
+(12:19:57 PM) bdale: ok, so I'll use 'tar' as an example, because it's suitably complicated to cover all the interesting cases
+(12:20:27 PM) bdale: (go figure .. an FSF package as non-free .. GFDL ftl!)
+(12:21:53 PM) bdale: I have a branch structure that includes upstream, pristine-tar, dfsg-orig, dfsg-debian, doc-orig, and doc-debian branches to start
+(12:22:48 PM) bdale: when there's a new upstream release, I download the tarball, and import it into the upstream branch with commands like:
+(12:22:54 PM) sconklin: do you keep this on a public or debian git repo, or just local?
+(12:23:05 PM) bdale: git.gag.com
+(12:23:37 PM) bdale: just pushed to make sure it's up to date, package is debian/tar if you want to look at it
+(12:23:56 PM) bdale: git checkout upstream
+(12:24:03 PM) bdale: git-import-orig --no-merge --pristine-tar --upstream-version 1.23 ~/Desk
+(12:24:03 PM) bdale: top/tar-1.23.tar.gz
+(12:24:33 PM) sapphire left the room (quit: Ping timeout: 480 seconds).
+(12:24:53 PM) bdale: this gets us the upstream 1.23 sources into the upstream branch, doesn't try to automatically merge them down anywhere, and puts the tarball into the pristine-tar branch .. 
+(12:25:31 PM) bdale: then I want to merge this into the dfsg-orig branch, clean it of non-DFSG compliant stuff, and commit it... so I do something like:
+(12:25:39 PM) bdale: git checkout dfsg-orig
+(12:25:39 PM) bdale:         git pull . upstream             # ignore warnings about doc/*
+(12:25:39 PM) bdale:         ./cleanup-script.sh
+(12:25:39 PM) bdale:         git commit -a
+(12:26:57 PM) bdale: the cleanup-script.sh exists only in that branch, and basically removes the doc/ subtree followed by unpacking a shar containing a skeletal Makefile.in and README to keep the build system happy without further patching and explain to the naive what's going on
+(12:27:19 PM) bdale: so now we have real upstream source in the upstream branch, and dfsg compliant source in the dfsg-orig branch
+(12:27:56 PM) bdale: we then want to merge to the dfsg-debian branch where we'll do the actual packaging
+(12:28:03 PM) bdale: git checkout dfsg-debian
+(12:28:03 PM) bdale:         git pull . dfsg-orig
+(12:28:03 PM) bdale:         - fix up merge conflicts
+(12:28:03 PM) bdale:         - update debian/changelog
+(12:28:06 PM) bdale:         git commit -a
+(12:29:55 PM) bdale: so, now we move to the dfsg-debian branch, populate the debian/ directory, create a debian/gbp.conf that tells git-buildpackage to use dfsg-orig as the 'upstream' branch and dfsg-debian as the 'master' branch for packaging, and go for it..  since we don't have an orig.tar.gz matching our cleaned upstream, we create one like:
+(12:30:00 PM) sconklin: oh, thats an interesting way to manage it, and is extensible. What I'm doing isn't bad for the simple changes
+(12:30:26 PM) sconklin: and you get to see anything new that pops into the tarball
+(12:30:31 PM) bdale:         git checkout dfsg-debian
+(12:30:31 PM) bdale:         git pull . dfsg-orig
+(12:30:31 PM) bdale:         - fix up merge conflicts
+(12:30:31 PM) bdale:         - update debian/changelog
+(12:30:32 PM) bdale:         git commit -a
+(12:30:32 PM) bdale:         git-buildpackage --git-ignore-new --git-no-pristine-tar -S
+(12:30:34 PM) bdale:         pristine-tar commit ../build-area/tar/tar_1.23.orig.tar.gz
+(12:30:35 PM) bdale:         rm -r ../build-area/tar/*
+(12:30:37 PM) bdale:         sudo cowbuilder --update
+(12:30:39 PM) bdale:         git-buildpackage
+(12:30:41 PM) bdale:         git tag debian/1.23-1
+(12:31:08 PM) sconklin: cowbuilder, new one on me
+(12:31:59 PM) bdale: sconklin: it's like pbuilder, but uses a copy on write tree not a tarball unpackaged in a chroot
+(12:32:29 PM) sconklin: oh, nice
+(12:34:02 PM) bdale: sconklin: so you can see, I'm making use of git, git-buildpackage, and pristine-tar .. and the results are just stunningly productive once you get the mental firmware in place to just "do it"
+(12:34:53 PM) sconklin: ok bdale, let me get this all set up, and revise the package and I'll get back to you. I've been procrastinating creating my public git repo, but I need to do it for my wife's FOSS project anyway.
+(12:35:03 PM) bdale: sconklin: and by doing *all* of my package builds in cowbuilder, I never ever get caught with bad build-depends content on an upload... though the price I pay is waiting for the "populate a minimal chroot" to happen on every build.  it's completely rational to use more efficient build cycles and just do this for things you're going to upload, but I'm OCD about it.
+(12:35:33 PM) bdale: sconklin: for Debian packaging, using git.debian.org via the Alioth collab-maint thing can be a good choice
+(12:36:07 PM) bdale: I have enough other git stuff going that I tend to just use git.gag.com and let others cope, putting appropriate tags in the debian/control file to show where my packaging repo is, etc
+(12:37:35 PM) bdale: sconklin: my only other suggestion, which I'm bad at following myself, is to put a debian/README.source or whatever it's called in place that does things like document the branching structure you're using and a canonical set of steps like those I pasted above.
+(12:38:08 PM) sconklin: easy, I can paste a chat log in as a start . . . ;-)
+12:42:12 PM) bdale: sconklin: ok, so I'll stop looking at d-rats until you want me to look again .. bottom line is that you don't need to make it easy for anyone downstream of you to get to the pristine upstream tar if it's not clean
+(12:43:33 PM) sconklin: ok, I was doing that but I won't. I gather that pretty much anything rational and correct is ok if you document it in the README.Debian file
+(12:43:48 PM) sconklin: doing that ==> making it easy
+(12:44:05 PM) sconklin: I'll let you know when I'm ready for another review
+(12:44:41 PM) bdale: as long as your resulting source package is dfsg clean and what you upload is lintian-clean, you're unlikely to take any heat
