@@ -1,6 +1,14 @@
-d-rats (0.3.3~b4-3) lucid; urgency=low
+d-rats (0.3.3~b4-4) lucid; urgency=low
 
-  * New upstream beta version released (Closes: 589107)
+  * Cleanup of initial packaging after sponsor review
+    Removed unneeded build-dep on mercurial
+    Removed unused directory spec for /usr/local/bin
+
+ -- Steve Conklin <steve@conklinhouse.com>  Thu, 16 Sep 2010 08:42:02 -0500
+
+d-rats (0.3.3~b4-3) unstable; urgency=low
+
+  * New upstream beta version released
     The new beta arrived before the initial debian release,
     so this release should close the initial packaging bug
 
