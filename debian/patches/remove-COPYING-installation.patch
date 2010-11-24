@@ -5,7 +5,7 @@ Index: d-rats-0.3.3a1dfsg/setup.py
 @@ -94,7 +94,6 @@
                      ('/usr/share/d-rats/images', image_files),
                      ('/usr/share/d-rats/ui', ui_files),
-                     ('/usr/share/man/man1', ['share/d-rats.1']),
+                     ('/usr/share/man/man1', man_files),
 -                    ('/usr/share/doc/d-rats', ['COPYING']),
                      ] + locale_files)
                      
