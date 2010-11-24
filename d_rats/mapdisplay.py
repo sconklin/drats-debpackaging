@@ -1562,9 +1562,9 @@ class MapWindow(gtk.Window):
                     source.save()
                     return
             # No matching group
-                q = "%s %s %s" % \
-                    (_("Group"), group,
-                     _("does not exist.  Do you want to create it?"))
+            q = "%s %s %s" % \
+                (_("Group"), group,
+                 _("does not exist.  Do you want to create it?"))
             if not ask_for_confirmation(q):
                 return
                                             

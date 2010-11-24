@@ -1,3 +1,9 @@
+d-rats (0.3.3~b5-6) lucid; urgency=low
+
+  * New upstream version
+
+ -- Steve Conklin <steve@conklinhouse.com>  Tue, 23 Nov 2010 19:42:02 -0500
+
 d-rats (0.3.3~b4-4) lucid; urgency=low
 
   * Cleanup of initial packaging after sponsor review
