@@ -188,16 +188,17 @@ class Transporter(object):
 
     def _match_gps(self):
         # NMEA-style
-        m = re.match("^(.*)((\$GP[A-Z]{3},[^\r]*\r\n?){1,4}([^\r]*\r))(.*)", self.inbuf)
+        m = re.search("((?:\$GP[^\*]+\*[0-9A-F]{2}\r?\n?){2}.{8},.{20})",
+                      self.inbuf)
         if m:
-            g = m.groups()
-            return g[0], g[1], g[-1]
- 
+            return m.group(1)
+
         # GPS-A style
-        m = re.match("^(.*)(\$\$CRC[A-z0-9]{4},[^\r]*\r\n)(.*)", self.inbuf)
+        m = re.search("(\$\$CRC[A-z0-9]{4},[^\r]*\r)", self.inbuf)
         if m:
-            g = m.groups()
-            return g[0], g[1], g[2]
+            return m.group(1)
+        if "$$CRC" in self.inbuf:
+            print "Didn't match:\n%s" % repr(self.inbuf)
 
         return None
 
@@ -214,9 +215,9 @@ class Transporter(object):
     def _parse_gps(self):
         result = self._match_gps()
         if result:
-            self.inbuf = result[0] + result[2]
-            print "Found GPS string: %s" % {"" : result[1]}
-            self._send_text_block(result[1])
+            self.inbuf = self.inbuf.replace(result, "")
+            print "Found GPS string: %s" % repr(result)
+            self._send_text_block(result)
         else:
             return None
 

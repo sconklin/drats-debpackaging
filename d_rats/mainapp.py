@@ -691,7 +691,7 @@ class MainApp(object):
 
     def __station_status(self, object, sta, stat, msg, port):
         self.mainwindow.tabs["stations"].saw_station(sta, port, stat, msg)
-        status = station_status.STATUS_MSGS[stat]
+        status = station_status.get_status_msgs()[stat]
         event = main_events.Event(None, 
                                   "%s %s %s %s: %s" % (_("Station"),
                                                        sta,

@@ -470,7 +470,7 @@ class ChatTab(MainWindowTab):
         self.emit("user-send-chat", "CQCQCQ", port, "\r\n" + data, False)
 
     def _clear(self, but):
-        num, display = self._display_selected()
+        display = self._display_selected()
         display.get_buffer().set_text("")
 
     def _tab_selected(self, tabs, page, num):
@@ -522,7 +522,7 @@ class ChatTab(MainWindowTab):
         self._save_filters()
 
     def _view_log(self, but):
-        num, display = self._display_selected()
+        display = self._display_selected()
         fn = display.get_buffer().get_logfile()
         self._config.platform.open_text_file(fn)
 
@@ -783,9 +783,9 @@ class ChatTab(MainWindowTab):
         ports = []
         for p in self._config.options("ports"):
             spec = self._config.get("ports", p)
-            e, p, r, s, raw, name = spec.split(",")
-            if e == "True":
-                ports.append(name)
+            vals = spec.split(",")
+            if vals[0] == "True":
+                ports.append(vals[-1])
         ports.sort()
 
         model = dest.get_model()
