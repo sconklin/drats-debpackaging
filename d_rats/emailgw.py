@@ -35,6 +35,7 @@ import time
 import platform
 import gobject
 import re
+import random
 
 import formgui
 from ui import main_events
@@ -138,7 +139,8 @@ class MailThread(threading.Thread, gobject.GObject):
 
     def create_form_from_mail(self, mail):
         id = self.config.get("user", "callsign") + \
-            time.strftime("%m%d%Y%H%M%S")
+            time.strftime("%m%d%Y%H%M%S") + \
+            mail.get("Message-id", str(random.randint(0, 1000)))
         mid = platform.get_platform().filter_filename(id)
         ffn = os.path.join(self.config.form_store_dir(),
                            _("Inbox"),
@@ -161,10 +163,6 @@ class MailThread(threading.Thread, gobject.GObject):
     
         self._emit("form-received", -999, ffn)
     
-        msg = "Mail received from %s" % form.get_path_src()
-        event = main_events.Event(None, msg)
-        self._emit("event", event)
-
     def fetch_mails(self):
         self.message("Querying %s:%i" % (self.server, self.port))
 
@@ -206,6 +204,10 @@ class MailThread(threading.Thread, gobject.GObject):
             if mails:
                 for mail in mails:
                     self.create_form_from_mail(mail)
+                event = main_events.Event(_("Received %i messages") % \
+                                              len(mails))
+                self._emit("event", event)
+
                 result = "Queued %i messages" % len(mails)
             elif mails is not None:
                 result = "No messages"
@@ -295,6 +297,10 @@ class AccountMailThread(MailThread):
                 self.message("Failed to retrieve messages: %s" % e)
             for mail in mails:
                 self.__action(mail)
+            if mails:
+                event = main_events.Event(None,
+                                          "Received %i email(s)" % len(mails))
+                self._emit("event", event)
 
 class PeriodicAccountMailThread(AccountMailThread):
     def run(self):

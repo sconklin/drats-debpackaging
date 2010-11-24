@@ -23,16 +23,24 @@ STATUS_ONLINE     = 1
 STATUS_UNATTENDED = 2
 STATUS_OFFLINE    = 9
 
-STATUS_MSGS = {
-    STATUS_UNKNOWN    : _("Unknown"),
-    STATUS_ONLINE     : _("Online"),
-    STATUS_UNATTENDED : _("Unattended"),
-    STATUS_OFFLINE    : _("Offline"),
+__STATUS_MSGS = {
+    STATUS_UNKNOWN    : "Unknown",
+    STATUS_ONLINE     : "Online",
+    STATUS_UNATTENDED : "Unattended",
+    STATUS_OFFLINE    : "Offline",
 }
 
-STATUS_VALS = {}
-for k, v in STATUS_MSGS.items():
-    STATUS_VALS[v] = k
+def get_status_msgs():
+    d = {}
+    for k,v in __STATUS_MSGS.items():
+        d[k] = _(v)
+    return d
+
+def get_status_vals():
+    d = {}
+    for k,v in __STATUS_MSGS.items():
+        d[_(v)] = k
+    return d
 
 class Station:
     def __init__(self, callsign):

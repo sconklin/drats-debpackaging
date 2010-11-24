@@ -70,8 +70,15 @@ def default_build():
     form_files = glob("forms/*.x?l")
     image_files = glob("images/*")
     image_files.append("d-rats2.ico")
+    image_files.append("share/d-rats2.xpm")
     ui_files = glob("ui/*")
     _locale_files = glob("locale/*/LC_MESSAGES/D-RATS.mo")
+    _man_files = glob("share/*.1")
+
+    man_files = []
+    for f in _man_files:
+        os.system("gzip -c %s > %s" % (f, f+".gz"))
+	man_files.append(f+".gz")
 
     locale_files = []
     for f in _locale_files:
@@ -89,12 +96,12 @@ def default_build():
         version=DRATS_VERSION,
         scripts=["d-rats", "d-rats_mapdownloader", "d-rats_repeater"],
         data_files=[('/usr/share/applications', desktop_files),
-                    ('/usr/share/icons', ["d-rats2.ico"]),
+                    ('/usr/share/icons', ["share/d-rats2.xpm"]),
                     ('/usr/share/d-rats/forms', form_files),
                     ('/usr/share/d-rats/images', image_files),
                     ('/usr/share/d-rats/ui', ui_files),
                     ('/usr/share/d-rats/libexec', ["libexec/lzhuf"]),
-                    ('/usr/share/man/man1', ['share/d-rats.1']),
+                    ('/usr/share/man/man1', man_files),
                     ('/usr/share/doc/d-rats', ['COPYING']),
                     ] + locale_files)
                     
