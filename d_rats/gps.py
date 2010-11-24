@@ -282,7 +282,11 @@ class GPSPosition(object):
 
         _checksum = DPRS_checksum(self.station, self.comment[:astidx])
 
-        if _checksum != checksum:
+
+        if int(_checksum[1:], 16) != int(checksum[1:], 16):
+            print "CHECKSUM(%s): %s != %s" % (self.station,
+                                              int(_checksum[1:], 16),
+                                              int(checksum[1:], 16))
             #print "Failed to parse DPRS comment:"
             #print "  Comment: |%s|" % self.comment
             #print "  Check: %s %s (%i)" % (checksum, _checksum, astidx)

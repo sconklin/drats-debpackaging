@@ -302,3 +302,12 @@ def make_error_dialog(msg, stack, buttons, type, extra):
     d.destroy()
 
     return r
+
+def dict_rev(target_dict, key):
+    reverse = {}
+    for k,v in target_dict.items():
+        reverse[v] = k
+
+    print "Reversed dict: %s" % reverse
+
+    return reverse[key]

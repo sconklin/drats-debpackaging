@@ -353,10 +353,16 @@ class StationsList(MainWindowTab):
             self.__smsg = e.get_text()
             self._config.set("state", "status_msg", self.__smsg)
 
+        for s in sorted(station_status.get_status_msgs().values()):
+            status.append_text(s)
+
         status.connect("changed", set_status)
         msg.connect("changed", set_smsg)
 
-        utils.combo_select(status, self._config.get("state", "status_state"))
+        prev_status = self._config.get("state", "status_state")
+        if not utils.combo_select(status, prev_status):
+            utils.combo_select(status,
+                               station_status.get_status_msgs().values()[0])
         msg.set_text(self._config.get("state", "status_msg"))
         set_status(status)
         set_smsg(msg)
@@ -385,11 +391,10 @@ class StationsList(MainWindowTab):
              _("Port"),
              port)
 
+        status_val = station_status.get_status_msgs().get(status, "Unknown")
         if station not in self.__calls:
             if smsg:
-                msg += "\r\nStatus: <b>%s</b> (<i>%s</i>)" % (\
-                    station_status.STATUS_MSGS.get(status, "Unknown"),
-                    smsg)
+                msg += "\r\nStatus: <b>%s</b> (<i>%s</i>)" % (status_val, smsg)
             self.__calls.append(station)
             store.append((station, ts, msg, status, smsg, port))
             self.__view.queue_draw()
@@ -408,25 +413,22 @@ class StationsList(MainWindowTab):
                     if not smsg:
                         smsg = _smsg
 
-                    msg += "\r\nStatus: <b>%s</b> (<i>%s</i>)" % (\
-                        station_status.STATUS_MSGS.get(status,
-                                                       "Unknown"),
-                        smsg)
+                    msg += "\r\nStatus: <b>%s</b> (<i>%s</i>)" % (status_val,
+                                                                  smsg)
                     store.set(iter, 1, ts, 2, msg, 3, status, 4, smsg, 5, port)
                     break
                 iter = store.iter_next(iter)
 
         if status_changed and status > 0 and \
                 self._config.getboolean("prefs", "chat_showstatus"):
-            status_msg = station_status.STATUS_MSGS.get(status, "Unknown")
             self.emit("incoming-chat-message",
                       station,
                       "CQCQCQ",
-                      "%s %s: %s (%s %s)" % (_("Now"), status_msg, smsg,
+                      "%s %s: %s (%s %s)" % (_("Now"), status_val, smsg,
                                              _("Port"), port))
             
     def get_status(self):
-        sval = station_status.STATUS_VALS[self.__status]
+        sval = station_status.get_status_vals()[self.__status]
 
         return sval, self.__smsg
 
