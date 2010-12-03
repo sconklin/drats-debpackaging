@@ -1,4 +1,4 @@
-d-rats (0.3.3~b5-7) lucid; urgency=low
+d-rats (0.3.3~b5-ubuntu07) lucid; urgency=low
 
   * Build fail due to process error
 
