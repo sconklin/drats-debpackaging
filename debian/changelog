@@ -1,3 +1,9 @@
+d-rats (0.3.3~b5-maverick02) maverick; urgency=low
+
+  * Bump due to process problem
+
+ -- Steve Conklin <steve@conklinhouse.com>  Fri, 01 Dec 2010 19:59:00 -0500
+
 d-rats (0.3.3~b5-maverick01) maverick; urgency=low
 
   * Change version for maverick
