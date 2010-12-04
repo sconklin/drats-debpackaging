@@ -1,5 +1,10 @@
 I learned this method from Bdale Garbee
 
+Note: These are mostly my (sconklin) personal notes. If they are helpful to you that's nice, but they aren't really intended to
+be high quality documentation.
+
+--
+
 The tarball from upstream for d-rats contains a non-free (or questionable) executable. That needs to be stripped form the tarball
 
 bdale: I do all of my packaging in git, so I think about this in terms of git branch management.  Before I used git for packaging, I did a lot of this "manually".  So let me explain how I'd handle an upstream with non-free content in git and see if that makes sense to you?
@@ -19,19 +24,14 @@ bdale: this gets us the upstream 1.23 sources into the upstream branch, doesn't 
 
 bdale: then I want to merge this into the dfsg-orig branch, clean it of non-DFSG compliant stuff, and commit it... so I do something like:
   git checkout dfsg-orig
-  git pull . upstream             # ignore warnings about doc/*
+  git pull . upstream     # See NOTE just below
   ./cleanup-script.sh
   git commit -a
 
-bdale: the cleanup-script.sh exists only in that branch, and basically removes the doc/ subtree followed by unpacking a shar containing a skeletal Makefile.in and README to keep the build system happy without further patching and explain to the naive what's going on
+NOTE: In the case of d-rats, the cleanup script removed the directory libexec and the file in it, so this directory no longer exists on the dfsg-orig branch.
+Git ignores empty directories (and apparently those which do not exist), so when you do the pull that directory won't be created, and you don't need to run the cleanup script or commit. BUT - make sure nothing new has been added to that directory upstream. If it has, you'll have to get it.
 
-bdale: so now we have real upstream source in the upstream branch, and dfsg compliant source in the dfsg-orig branch
-bdale: we then want to merge to the dfsg-debian branch where we'll do the actual packaging
-bdale: git checkout dfsg-debian
-  git pull . dfsg-orig
-  - fix up merge conflicts
-  - update debian/changelog
-  git commit -a
+bdale: the cleanup-script.sh exists only in that branch, and basically removes the doc/ subtree followed by unpacking a shar containing a skeletal Makefile.in and README to keep the build system happy without further patching and explain to the naive what's going on
 
 bdale: so, now we move to the dfsg-debian branch, populate the debian/ directory, create a debian/gbp.conf that tells git-buildpackage to use dfsg-orig as the 'upstream' branch and dfsg-debian as the 'master' branch for packaging, and go for it..  since we don't have an orig.tar.gz matching our cleaned upstream, we create one like:
 
@@ -42,16 +42,26 @@ bdale: so, now we move to the dfsg-debian branch, populate the debian/ directory
     git commit -a
     git-buildpackage --git-ignore-new --git-no-pristine-tar -S
     pristine-tar commit ../build-area/tar/tar_1.23.orig.tar.gz
+
     rm -r ../build-area/tar/*
+    sudo cowbuilder --create # optional if needed the first time
     sudo cowbuilder --update
     git-buildpackage
     git tag debian/1.23-1
 
-sconklin: cowbuilder, new one on me
+Now for Ubuntu: (Note: Ubuntu branches are temporary until debian is in place)
 
-bdale: it's like pbuilder, but uses a copy on write tree not a tarball unpackaged in a chroot
+git checkout dfsg-ubuntu
+git pull . dfsg-debian
+(fixup changelog)
 
-sconklin: oh, nice
+Note: Versioning for Ubuntu must be like this:
+   0.3.3~b5-lucid07
+
+git-buildpackage --git-no-pristine-tar -S -sa
+
+And repeat for the dfsg-ubuntu-maverick branch
+
 
 bdale: sconklin: so you can see, I'm making use of git, git-buildpackage, and pristine-tar .. and the results are just stunningly productive once you get the mental firmware in place to just "do it"
 
