@@ -1,15 +1,16 @@
 Source: d-rats
 Section: hamradio
 Priority: optional
-Maintainer: Steve Conklin <steve@conklinhouse.com>
+Maintainer: Debian Hamradio Maintainers <debian-hams@lists.debian.org>
+Uploaders: Steve Conklin <steve@conklinhouse.com>, Bdale Garbee <bdale@gag.com>, Kamal Mostafa <kamal@whence.com>
 DM-Upload-Allowed: yes
 Build-Depends: debhelper (>= 7.0.50~), python-support, python (>=2.6)
-Standards-Version: 3.9.0
+Standards-Version: 3.9.1
 Homepage: http://www.d-rats.com/
 
 Package: d-rats
 Architecture: any
-Depends: ${python:Depends}, ${misc:Depends}, python (>= 2.6), python-libxslt1, python-gtk2, python-libxml2
+Depends: ${misc:Depends}, ${python:Depends}, python-libxslt1, python-gtk2, python-libxml2
 Description: A communication tool for D-STAR amateur radio
  D-RATS is a communications tool for D-STAR amateur radio low-speed data
  (DV mode).
