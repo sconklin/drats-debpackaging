@@ -1,3 +1,8 @@
+Description: Don't install the binary file that we've stripped from the tarball.
+ The binary is removed due to lack of compliance with the dfsg
+Author: Steve Conklin <steve@conklinhouse.com>
+Last-Update: 2011-02-18
+
 --- a/setup.py
 +++ b/setup.py
 @@ -93,7 +93,6 @@

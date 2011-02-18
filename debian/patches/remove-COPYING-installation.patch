@@ -1,3 +1,7 @@
+Description: Don't install the COPYING file with the man pages
+Author: Steve Conklin <steve@conklinhouse.com>
+Last-Update: 2011-02-18
+
 Index: d-rats-0.3.3a1dfsg/setup.py
 ===================================================================
 --- d-rats-0.3.3a1dfsg.orig/setup.py	2010-08-28 21:37:38.230075850 -0500
