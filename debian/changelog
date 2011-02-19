@@ -1,5 +1,5 @@
-d-rats (0.3.3~b5-7) unstable; urgency=low
+d-rats (0.3.3~b5-8) unstable; urgency=low
 
   * Ready for initial debian upload (Closes: 589107)
 
- -- Steve Conklin <steve@conklinhouse.com>  Thu, 10 Feb 2011 19:04:24 -0600
+ -- Steve Conklin <steve@conklinhouse.com>  Fri, 18 Feb 2011 18:17:24 -0600
