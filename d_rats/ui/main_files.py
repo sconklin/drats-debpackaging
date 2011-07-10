@@ -30,6 +30,7 @@ from d_rats.ui import main_events
 from d_rats import image
 from d_rats import utils
 from d_rats import signals
+from d_rats import inputdialog
 
 THROB_IMAGE = "throbber.gif"
 REMOTE_HINT = _("Enter remote callsign")
@@ -274,6 +275,37 @@ class FilesTab(MainWindowTab):
         self.emit("submit-rpc-job", job, port)
         # FIXME: Need an event here
 
+    def _delete(self, button, rfview):
+        station = self._remote.get_path()
+
+        d = inputdialog.TextInputDialog()
+        d.label.set_text(_("Password for %s (blank if none):" % station))
+        d.text.set_visibility(False)
+        if d.run() != gtk.RESPONSE_OK:
+            return
+        passwd = d.text.get_text()
+        d.destroy()
+
+        fn = self._remote.get_selected_filename()
+
+        ssel, psel = self._get_ssel()
+        port = psel.get_active_text()
+
+        def log_failure(job, state, result):
+            rc = result.get("rc", "Timeout")
+            event = main_events.Event(None, "%s: %s" % (job.get_dest(), rc))
+
+            job = self._remote.refresh()
+            self._emit("submit-rpc-job", job, port)
+            self._emit("event", event)
+
+        job = rpc.RPCDeleteFileJob(station, "Delete file %s" % fn)
+        job.connect("state-change", log_failure)
+        job.set_file(fn)
+        job.set_pass(passwd)
+
+        self.emit("submit-rpc-job", job, port)
+
     def _init_toolbar(self):
         def populate_tb(tb, buttons):
             c = 0
@@ -314,6 +346,7 @@ class FilesTab(MainWindowTab):
             [(connect, _("Connect"), self._connect_remote, self._remote),
              (disconnect, _("Disconnect"), self._disconnect, self._remote),
              (dnload, _("Download"), self._download, self._remote),
+             (delete, _("Delete"), self._delete, self._remote),
              ]
         
         populate_tb(rtb, rbuttons)

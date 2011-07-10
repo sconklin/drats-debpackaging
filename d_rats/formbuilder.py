@@ -20,11 +20,13 @@ import gobject
 import os
 import glob
 import tempfile
+import shutil
 
 from miscwidgets import make_choice
 from formgui import FormDialog,FormFile,xml_escape,xml_unescape
 import formgui
 import mainapp
+from d_rats import platform
 
 class FormElementEditor(gtk.Dialog):
     def make_entry_editor(self, id):
@@ -390,7 +392,8 @@ class FormBuilderGUI(gtk.Dialog):
              ("Add", self.but_add),
              ("Edit", self.but_edit),
              ("Delete", self.but_delete),
-             ("Move Down", self.but_move_down)]
+             ("Move Down", self.but_move_down),
+             ]
 
         for i in l:
             (cap, func) = i
@@ -538,11 +541,21 @@ class FormManagerGUI(object):
             id = "broken"
             title = "Broken Form - Delete me"
 
+        iter = self.store.get_iter_first()
+        while iter:
+            form_id, = self.store.get(iter, self.col_id)
+            print "Checking %s against %s" % (form_id, id)
+            if form_id == id:
+                raise Exception("Cannot add duplicate form `%s'" % form_id)
+            iter = self.store.iter_next(iter)
+
         iter = self.store.append()
         self.store.set(iter,
                        self.col_id, id,
                        self.col_title, title,
                        self.col_file, filename)
+
+        return id
 
     def but_new(self, widget, data=None):
         d = FormBuilderGUI()
@@ -592,6 +605,35 @@ class FormManagerGUI(object):
     def but_close(self, widget, data=None):
         self.window.destroy()
 
+    def but_import(self, widget, data=None):
+        p = platform.get_platform()
+        fn = p.gui_open_file()
+        if not fn:
+            return
+
+        try:
+            form_id = self.add_form(fn)
+        except Exception, e:
+            d = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
+            d.set_markup("<big><b>Unable to add form</b></big>")
+            d.format_secondary_text(str(e))
+            d.run()
+            d.destroy()
+
+        shutil.copy(fn, os.path.join(self.dir, "%s.xml" % form_id))
+
+    def but_export(self, widget, data=None):
+        try:
+            (list, iter) = self.view.get_selection().get_selected()
+            (filename, _id) = list.get(iter, self.col_file, self.col_id)
+        except:
+            return
+
+        p = platform.get_platform()
+        fn = p.gui_save_file(default_name="%s.xml" % _id)
+        if fn:
+            shutil.copy(filename, fn)
+
     def make_list(self):
         self.col_id = 0
         self.col_title = 1
@@ -626,7 +668,10 @@ class FormManagerGUI(object):
         l = [("New", self.but_new),
              ("Edit", self.but_edit),
              ("Delete", self.but_delete),
-             ("Close", self.but_close)]
+             ("Close", self.but_close),
+             ("Import", self.but_import),
+             ("Export", self.but_export),
+             ]
 
         hbox = gtk.HBox(True, 2)
 

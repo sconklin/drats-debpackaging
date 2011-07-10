@@ -973,6 +973,8 @@ class MessagesTab(MainWindowTab):
         if len(sel) > 1:
             print "FIXME: Warn about multiple send"
             return
+        elif len(sel) == 0:
+            return
 
         fn = sel[0]
 

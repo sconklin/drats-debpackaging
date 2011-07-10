@@ -35,8 +35,6 @@ class SocketListener(object):
 
     def stop(self):
         self.enabled = False
-        if self.lsock:
-            self.lsock.close()
         self.thread.join()
 
     def listener(self):
@@ -68,10 +66,12 @@ class SocketListener(object):
                                       dest=self.dest,
                                       cls=SocketSession)
 
-            while s.get_state() != s.ST_CLSD:
-                s.wait_for_state_change(10)
+            while s.get_state() != base.ST_CLSD and self.enabled:
+                s.wait_for_state_change(1)
 
             print "%s ended" % name
+            self.dsock.close()
             self.dsock = None
 
         sock.close()
+        print "TCP:%i shutdown" % self.dport
