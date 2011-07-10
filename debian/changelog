@@ -1,3 +1,9 @@
+d-rats (0.3.3-1) unstable; urgency=low
+
+  * New upstream version 0.3.3
+
+ -- Steve Conklin <steve@conklinhouse.com>  Sat, 09 Jul 2011 20:22:16 -0500
+
 d-rats (0.3.3~b5-8) unstable; urgency=low
 
   * Ready for initial debian upload (Closes: 589107)
