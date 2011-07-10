@@ -98,6 +98,7 @@ class Transporter(object):
         self.force_delay = kwargs.get("force_delay", 0)
         self.compat_delay = kwargs.get("compat_delay", 5)
         self.msg_fn = kwargs.get("msg_fn", None)
+        self.name = kwargs.get("port_name", "")
 
         self.thread = threading.Thread(target=self.worker,
                                        args=(authfn,))
@@ -188,7 +189,7 @@ class Transporter(object):
 
     def _match_gps(self):
         # NMEA-style
-        m = re.search("((?:\$GP[^\*]+\*[0-9A-F]{2}\r?\n?){2}.{8},.{20})",
+        m = re.search("((?:\$GP[^\*]+\*[A-f0-9]{2}\r?\n?){1,2}.{8},.{20})",
                       self.inbuf)
         if m:
             return m.group(1)

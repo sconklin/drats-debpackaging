@@ -131,6 +131,8 @@ _DEF_SETTINGS = {
     "msg_pop3_port" : "9110",
     "msg_smtp_server" : "False",
     "msg_smtp_port" : "9025",
+    "delete_from" : "",
+    "remote_admin_passwd" : "",
 }
 
 _DEF_STATE = {
@@ -779,7 +781,7 @@ class DratsPrefsPanel(DratsPanel):
         self.mv(_("Ping reply"), val)
 
         val = DratsConfigWidget(config, "prefs", "language")
-        val.add_combo(["English", "Italiano", "Dutch"])
+        val.add_combo(["English", "German", "Italiano", "Dutch"])
         self.mv(_("Language"), val)
 
         mval = DratsConfigWidget(config, "prefs", "blink_messages")
@@ -1060,6 +1062,14 @@ class DratsTransfersPanel(DratsPanel):
         val = DratsConfigWidget(config, "settings", "force_delay", True)
         val.add_numeric(-32, 32, 1)
         self.mv(_("Force transmission delay"), val)
+
+        val = DratsConfigWidget(config, "settings", "delete_from")
+        val.add_text()
+        self.mv(_("Allow file deletes from"), val)
+
+        val = DratsConfigWidget(config, "settings", "remote_admin_passwd")
+        val.add_pass()
+        self.mv(_("Remote admin password"), val)
 
 class DratsMessagePanel(DratsPanel):
     def __init__(self, config):

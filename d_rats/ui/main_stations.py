@@ -354,7 +354,8 @@ class StationsList(MainWindowTab):
             self._config.set("state", "status_msg", self.__smsg)
 
         for s in sorted(station_status.get_status_msgs().values()):
-            status.append_text(s)
+            if s not in [_("Unknown"), _("Offline")]:
+                status.append_text(s)
 
         status.connect("changed", set_status)
         msg.connect("changed", set_smsg)

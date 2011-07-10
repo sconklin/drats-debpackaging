@@ -219,12 +219,18 @@ class WinLinkCMS:
         print "  -> %s" % string
         self._conn.send(string + "\r")
 
-    def _recv(self):
+    def __recv(self):
         resp = ""
         while not resp.endswith("\r"):
             resp += self._conn.recv(1)
         print "  <- %s" % escaped(resp)
         return resp
+
+    def _recv(self):
+        r = ";"
+        while r.startswith(";"):
+            r = self.__recv()
+        return r;
 
     def _send_ssid(self, recv_ssid):
         try:
