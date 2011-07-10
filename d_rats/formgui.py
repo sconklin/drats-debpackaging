@@ -1162,6 +1162,11 @@ class FormDialog(FormFile, gtk.Dialog):
                     call = self._config.get("user", "callsign")
                     f.entry.widget.set_text(call)
                 f.entry.widget.set_property("editable", False)
+            elif f.id == "_auto_position":
+                if not f.entry.widget.get_text():
+                    import mainapp # Dirty hack
+                    pos = mainapp.get_mainapp().get_position()
+                    f.entry.widget.set_text(pos.coordinates())
             
             l = gtk.Label(f.caption)
             l.show()

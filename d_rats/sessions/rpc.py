@@ -139,6 +139,22 @@ class RPCPullFileJob(RPCJob):
     def do(self, rpcactions):
         return rpcactions.RPC_file_pull(self)
 
+class RPCDeleteFileJob(RPCJob):
+    def set_file(self, filename):
+        self._args["fn"] = filename
+
+    def set_pass(self, passwd):
+        self._args["passwd"] = passwd
+
+    def get_file(self):
+        return self._args.get("fn", None)
+
+    def get_pass(self):
+        return self._args.get("passwd", "")
+
+    def do(self, rpcactions):
+        return rpcactions.RPC_file_delete(self)
+
 class RPCPullFormJob(RPCJob):
     def set_form(self, form):
         self._args = {"fn" : form}
@@ -283,6 +299,7 @@ class RPCSession(gobject.GObject, stateless.StatelessSession):
         frame = self.__job_to_frame(job, id)
         job.frame = frame
         self._sm.outgoing(self, frame)
+        print "sent"
 
     def __worker(self):
         for id, (ts, att, job) in self.__jobs.items():
@@ -424,6 +441,43 @@ class RPCActionSet(gobject.GObject):
     
         return result
     
+    def RPC_file_delete(self, job):
+        result = {}
+
+        _permlist = self.__config.get("settings", "delete_from")
+        try:
+            permlist = _permlist.upper().split(",")
+        except Exception:
+            result["rc"] = "Access list not properly configured"
+            return result
+
+        if job.get_dest().upper() not in permlist:
+            result["rc"] = "Access denied for %s" % job.get_dest()
+            return result
+
+        passwd = self.__config.get("settings", "remote_admin_passwd")
+        if passwd and job.get_pass() != passwd:
+            result["rc"] = "Access denied (Incorrect Password)"
+            return result
+
+        if "/" in job.get_file():
+            result["rc"] = "Access denied (file contains slash)"
+            return result
+
+        path = os.path.join(self.__config.get("prefs", "download_dir"),
+                            job.get_file())
+        if not os.path.exists(path):
+            result["rc"] = "File not found (%s)" % job.get_file()
+            return result
+
+        try:
+            os.remove(path)
+            result["rc"] = "File %s deleted" % job.get_file()
+        except Exception, e:
+            result["rc"] = "Unable to delete %s: %s" % (job.get_file(), e)
+
+        return result
+
     def RPC_form_pull(self, job):
         result = {}
     

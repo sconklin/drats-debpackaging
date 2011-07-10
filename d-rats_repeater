@@ -90,7 +90,7 @@ def call_in_list(callinfo, call):
     return False
 
 class Repeater:
-    def __init__(self, id="D-RATS Network Proxy", reqauth=False, trustlocal=False):
+    def __init__(self, id="D-RATS Network Proxy", reqauth=False, trustlocal=False, gps_okay_ports=[]):
         self.paths = []
         self.calls = {}
         self.thread = None
@@ -101,14 +101,29 @@ class Repeater:
         self.reqauth = reqauth
         self.trustlocal = trustlocal
         self.condition = threading.Condition()
+        self.gps_socket = None
+        self.gps_sockets = []
+        self.gps_okay_ports = gps_okay_ports
 
         # Forget port for a station after 10 minutes
         self.__call_timeout = 600
 
-    def __repeat(self, transport, frame):
+    def __should_repeat_gps(self, transport, frame):
+        if not self.gps_okay_ports:
+            return True
+        else:
+            return transport.name in self.gps_okay_ports
 
+    def __repeat(self, transport, frame):
         if frame.d_station == "!":
             return
+
+        if frame.s_station == frame.d_station == "CQCQCQ" and \
+                frame.session == 1 and \
+                frame.data.startswith("$") and \
+                self.__should_repeat_gps(transport, frame):
+            for s in self.gps_sockets:
+                s.send(frame.data)
 
         srcinfo = self.calls.get(frame.s_station, None)
         if srcinfo is None and frame.s_station != "CQCQCQ":
@@ -265,19 +280,34 @@ class Repeater:
                                       warmup_timeout=0)
         self.add_new_transport(tport)
 
+    def accept_new_gps(self):
+        if not self.gps_socket:
+            return
+
+        try:
+            (csocket, addr) = self.gps_socket.accept()
+        except:
+            return
+
+        print "Accepted new GPS client %s:%i" % addr
+        self.gps_sockets.append(csocket)
+
     def listen_on(self, port):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setblocking(0)
-        self.socket.setsockopt(socket.SOL_SOCKET,
-                               socket.SO_REUSEADDR,
-                               1)
-        self.socket.bind(('0.0.0.0', port))
-        self.socket.listen(0)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setblocking(0)
+        s.setsockopt(socket.SOL_SOCKET,
+                     socket.SO_REUSEADDR,
+                     1)
+        s.bind(('0.0.0.0', port))
+        s.listen(0)
+
+        return s
 
     def _repeat(self):
         while self.enabled:
             self.condition.acquire()
             self.accept_new()
+            self.accept_new_gps()
             self.condition.release()
 
             time.sleep(0.5)
@@ -327,6 +357,11 @@ class RepeaterUI:
         config.set("settings", "idfreq", "30")
         config.set("settings", "require_auth", "False")
         config.set("settings", "trust_local", "True")
+        config.set("settings", "gpsport", "9500")
+
+        config.add_section("tweaks")
+        config.set("tweaks",  "allow_gps", "")
+
         config.read(self.config_fn)
 
         return config
@@ -340,8 +375,9 @@ class RepeaterUI:
     def add_outgoing_paths(self, id, paths):
         reqauth = self.config.get("settings", "require_auth") == "True"
         trustlocal = self.config.get("settings", "trust_local") == "True"
+        gps_okay_ports = self.config.get("tweaks", "allow_gps").split(",")
         print "Repeater id is %s" % id
-        self.repeater = Repeater(id, reqauth, trustlocal)
+        self.repeater = Repeater(id, reqauth, trustlocal, gps_okay_ports)
         for dev,param in paths:
             to = 0
             if dev.startswith("net:"):
@@ -373,7 +409,8 @@ class RepeaterUI:
                 to = 3
 
             path.connect()
-            tport = transport.Transporter(path, warmup_timout=to)
+            tport = transport.Transporter(path, warmup_timout=to,
+                                          name=dev)
             self.repeater.add_new_transport(tport)
 
 
@@ -476,6 +513,21 @@ class RepeaterGUI(RepeaterUI):
         except:
             port = "9000"
         
+        self.entry_gpsport = gtk.Entry()
+        try:
+            gpsport = self.config.get("settings", "gpsport")
+        except :
+            port = "9500"
+
+        self.entry_gpsport.set_text(gpsport)
+        self.entry_gpsport.set_size_request(100, -1)
+        self.entry_gpsport.show()
+        hbox.pack_end(self.entry_gpsport, 0,0,0)
+
+        lab = gtk.Label("GPS Port:")
+        lab.show()
+        hbox.pack_end(lab, 0,0,0)
+
         self.entry_port.set_text(port)
         self.entry_port.set_size_request(100, -1)
         self.entry_port.show()
@@ -657,6 +709,7 @@ class RepeaterGUI(RepeaterUI):
         devices = self.dev_list.get_values()
         auth = self.req_auth.get_active()
         local = self.trust_local.get_active()
+        gpsport = self.entry_gpsport.get_text()
 
         self.config.set("settings", "id", id)
         #self.config.set("settings", "idfreq", idfreq)
@@ -665,6 +718,7 @@ class RepeaterGUI(RepeaterUI):
         self.config.set("settings", "devices", devices)
         self.config.set("settings", "require_auth", str(auth))
         self.config.set("settings", "trust_local", str(local))
+        self.config.set("settings", "gpsport", gpsport)
 
     def button_remove(self, widget):
         self.dev_list.remove_selected()
@@ -684,12 +738,15 @@ class RepeaterGUI(RepeaterUI):
 
         try:
             port = int(self.entry_port.get_text())
+            gpsport = int(self.entry_gpsport.get_text())
             enabled = self.net_enabled.get_active()
         except:
             port = 0
+            gpsport = 0
 
         if port and enabled:
-            self.repeater.listen_on(port)
+            self.repeater.socket = self.repeater.listen_on(port)
+            self.repeater.gps_socket = self.repeater.listen_on(gpsport)
 
         #self.tap = LoopDataPath("TAP", self.repeater.condition)
         #self.repeater.paths.append(self.tap)
@@ -787,6 +844,7 @@ class RepeaterConsole(RepeaterUI):
         try:
             acceptnet = eval(self.config.get("settings", "acceptnet"))
             netport = int(self.config.get("settings", "netport"))
+            gpsport = int(self.config.get("settings", "gpsport"))
             idfreq = self.config.get("settings", "idfreq")
             if idfreq == "Never":
                 idfreq = 0
@@ -797,7 +855,8 @@ class RepeaterConsole(RepeaterUI):
             acceptnet = False
 
         if acceptnet:
-            self.repeater.listen_on(netport)
+            self.repeater.socket = self.repeater.listen_on(netport)
+            self.repeater.gps_socket = self.repeater.listen_on(gpsport)
 
         self.repeater.repeat()
 

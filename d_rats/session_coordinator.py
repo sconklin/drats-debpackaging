@@ -478,3 +478,8 @@ class SessionCoordinator(gobject.GObject):
         self.outgoing_forms = []
 
         self.socket_listeners = {}
+
+    def shutdown(self):
+        for dport, listener in self.socket_listeners.items():
+            print "Stopping TCP:%i" % dport
+            listener.stop()
